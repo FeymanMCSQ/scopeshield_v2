@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "ScopeShield (Dev)",
+  "version": "0.0.1",
+  "description": "ScopeShield v2 — extension skeleton",
+  "action": {
+    "default_title": "ScopeShield",
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"]
+}
