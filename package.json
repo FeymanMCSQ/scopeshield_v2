@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "audit:identity": "grep -RIn --exclude-dir=node_modules --exclude-dir=.next \"cookies()\" src/app/api && exit 1 || echo \"OK: no cookies() in routes\""
+    "audit:identity": "grep -RIn --exclude-dir=node_modules --exclude-dir=.next \"cookies()\" src/app/api && exit 1 || echo \"OK: no cookies() in routes\"",
+    "audit:policy": "grep -RInE --exclude-dir=node_modules --exclude-dir=.next \"ticket\\.userId\\s*(===|!==)\\s*actor\\.userId|actor\\.userId\\s*(===|!==)\\s*ticket\\.userId\" src/app/api && echo \"❌ Manual ownership check detected. Use ticketPolicy instead.\" && exit 1 || echo \"✅ Policy audit passed: no manual ownership checks.\""
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
