@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "audit:identity": "grep -RIn --exclude-dir=node_modules --exclude-dir=.next \"cookies()\" src/app/api && exit 1 || echo \"OK: no cookies() in routes\""
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
