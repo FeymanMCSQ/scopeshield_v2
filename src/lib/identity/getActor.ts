@@ -14,6 +14,8 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { cookies } from 'next/headers';
+import { HttpError } from '@/server/http/httpError';
+
 import crypto from 'crypto';
 
 const GUEST_COOKIE = 'ss_uid';
@@ -93,15 +95,9 @@ export async function requireGuestActor(): Promise<RequireGuestActor> {
  * Routes can catch these and map to HTTP status codes.
  */
 function throwUnauthorized(message: string): never {
-  const err = new Error(message) as Error & { status?: number; code?: string };
-  err.status = 401;
-  err.code = 'UNAUTHORIZED';
-  throw err;
+  throw new HttpError(401, 'UNAUTHORIZED', message);
 }
 
 function throwForbidden(message: string): never {
-  const err = new Error(message) as Error & { status?: number; code?: string };
-  err.status = 403;
-  err.code = 'FORBIDDEN';
-  throw err;
+  throw new HttpError(403, 'FORBIDDEN', message);
 }
