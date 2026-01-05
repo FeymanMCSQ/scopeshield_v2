@@ -3,6 +3,7 @@ import { requireUserActor } from '@/lib/identity/getActor';
 import { makeTicketService } from '@/server/services';
 import { asClientId, asUserId, cents } from '@/domain/shared';
 import { toHttpError } from '@/server/http/errors';
+import { makeUserService } from '@/server/services';
 
 type Body = {
   clientId: string;
@@ -13,6 +14,11 @@ type Body = {
 
 export async function POST(req: Request) {
   const actor = await requireUserActor();
+
+  await makeUserService().ensureUserExists({
+    userId: asUserId(actor.userId),
+    email: null, // we can fetch email later
+  });
 
   let body: Body;
   try {
