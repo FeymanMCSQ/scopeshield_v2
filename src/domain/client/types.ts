@@ -6,6 +6,7 @@
  * Trust zone: none
  */
 
+// src/domain/client/types.ts
 import type { ClientId, IsoDateTime, UserId } from '../shared';
 import { invariant } from '../shared';
 

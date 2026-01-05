@@ -15,6 +15,8 @@
 import { auth } from '@clerk/nextjs/server';
 import { cookies } from 'next/headers';
 import { HttpError } from '@/server/http/httpError';
+import { makeUserService } from '@/server/services';
+import { asUserId } from '@/domain/shared';
 
 import crypto from 'crypto';
 
@@ -78,6 +80,11 @@ export async function getActor(): Promise<Actor> {
 export async function requireUserActor(): Promise<RequireUserActor> {
   const actor = await getActor();
   if (actor.kind !== 'user') throwUnauthorized('User authentication required.');
+  await makeUserService().ensureUserExists({
+    userId: asUserId(actor.userId),
+    email: null,
+  });
+
   return actor;
 }
 

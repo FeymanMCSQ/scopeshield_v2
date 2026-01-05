@@ -4,6 +4,7 @@ import { makeTicketService } from '@/server/services';
 import { asClientId, asUserId, cents } from '@/domain/shared';
 import { toHttpError } from '@/server/http/errors';
 import { makeUserService } from '@/server/services';
+export const runtime = 'nodejs';
 
 type Body = {
   clientId: string;

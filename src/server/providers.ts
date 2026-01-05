@@ -7,11 +7,12 @@
  */
 
 import crypto from 'crypto';
-import { asTicketId, asTicketPublicId, isoDateTime } from '@/domain/shared';
+import { asClientId, asTicketId, asTicketPublicId, isoDateTime } from '@/domain/shared';
 
 export const ids = {
   newTicketId: () => asTicketId(crypto.randomUUID()),
   newTicketPublicId: () => asTicketPublicId(crypto.randomUUID()),
+  newClientId: () => asClientId(crypto.randomUUID()),
 };
 
 export const time = {
