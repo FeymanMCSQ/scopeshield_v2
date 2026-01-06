@@ -32,3 +32,17 @@ export function makeClientService() {
     time,
   });
 }
+
+import { PaymentsService } from '@/application/payments/paymentsService';
+import { StripeAdapter } from '@/infra/payments/stripeAdapter';
+
+export function makePaymentsService() {
+  return new PaymentsService({
+    paymentPort: new StripeAdapter(
+      process.env.STRIPE_SECRET_KEY!,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    ),
+    ticketService: makeTicketService(),
+    baseUrl: process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000',
+  });
+}
