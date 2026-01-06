@@ -10,6 +10,7 @@
  * - This service is intentionally "transport-agnostic" and "payment-agnostic".
  */
 
+// src/application/ticketService.ts
 import type {
   ClientId,
   TicketId,
@@ -45,6 +46,7 @@ export type DashboardTicket = {
 
 export interface TicketRepo {
   findById(id: TicketId): Promise<Ticket | null>;
+  findByPublicId(publicId: TicketPublicId): Promise<Ticket | null>;
   create(ticket: Ticket): Promise<Ticket>;
   update(ticket: Ticket): Promise<Ticket>;
 
@@ -68,8 +70,6 @@ export type CreateTicketInput = {
   priceCents: Cents;
   assetUrl?: string | null;
 };
-
-
 
 export class TicketService {
   constructor(
@@ -137,11 +137,16 @@ export class TicketService {
     return this.deps.ticketRepo.findForDashboard(userId);
   }
 
+  async getPublicTicket(publicId: TicketPublicId): Promise<Ticket> {
+    invariant(publicId, 'publicId is required.');
+    const ticket = await this.deps.ticketRepo.findByPublicId(publicId);
+    if (!ticket) throw new DomainError('NOT_FOUND', 'Ticket not found.');
+    return ticket;
+  }
+
   private async mustGet(id: TicketId): Promise<Ticket> {
     const ticket = await this.deps.ticketRepo.findById(id);
     if (!ticket) throw new DomainError('NOT_FOUND', 'Ticket not found.');
     return ticket;
   }
-
-
 }

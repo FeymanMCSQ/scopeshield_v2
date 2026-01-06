@@ -69,6 +69,13 @@ export class TicketRepoPrisma implements TicketRepo {
     return toDomain(row);
   }
 
+  async findByPublicId(publicId: Ticket['publicId']): Promise<Ticket | null> {
+    const row = await prisma.ticket.findUnique({ where: { publicId } });
+    return row ? toDomain(row) : null;
+  }
+
+
+
   async findForDashboard(userId: Ticket['userId']): Promise<DashboardTicket[]> {
     const rows = (await prisma.ticket.findMany({
       where: { userId },
@@ -76,7 +83,9 @@ export class TicketRepoPrisma implements TicketRepo {
       include: {
         client: { select: { id: true, name: true } },
       },
-    })) as unknown as (PrismaTicket & { client: { id: string; name: string } })[];
+    })) as unknown as (PrismaTicket & {
+      client: { id: string; name: string };
+    })[];
 
     return rows.map((row) => ({
       id: asTicketId(row.id),
