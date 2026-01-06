@@ -27,10 +27,28 @@ import {
 import { DomainError, invariant } from '@/domain/shared';
 
 /** Dependencies (ports) — implemented by Infrastructure later (Prisma repos). */
+
+export type DashboardTicket = {
+  id: TicketId;
+  publicId: TicketPublicId;
+  status: Ticket['status'];
+  message: string;
+  priceCents: Cents;
+  assetUrl: string | null;
+  createdAt: IsoDateTime;
+
+  client: {
+    id: ClientId;
+    name: string;
+  };
+};
+
 export interface TicketRepo {
   findById(id: TicketId): Promise<Ticket | null>;
   create(ticket: Ticket): Promise<Ticket>;
   update(ticket: Ticket): Promise<Ticket>;
+
+  findForDashboard(userId: UserId): Promise<DashboardTicket[]>;
 }
 
 export interface IdProvider {
@@ -50,6 +68,8 @@ export type CreateTicketInput = {
   priceCents: Cents;
   assetUrl?: string | null;
 };
+
+
 
 export class TicketService {
   constructor(
@@ -112,9 +132,16 @@ export class TicketService {
     return this.deps.ticketRepo.update(next);
   }
 
+  async getDashboard(userId: UserId): Promise<DashboardTicket[]> {
+    invariant(userId, 'userId is required.');
+    return this.deps.ticketRepo.findForDashboard(userId);
+  }
+
   private async mustGet(id: TicketId): Promise<Ticket> {
     const ticket = await this.deps.ticketRepo.findById(id);
     if (!ticket) throw new DomainError('NOT_FOUND', 'Ticket not found.');
     return ticket;
   }
+
+
 }

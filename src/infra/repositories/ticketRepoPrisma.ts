@@ -19,6 +19,7 @@ import {
   cents,
 } from '@/domain/shared';
 import type { Ticket as PrismaTicket } from '../../generated/prisma/client';
+import type { DashboardTicket } from '@/application/ticketService';
 
 function toDomain(row: PrismaTicket): Ticket {
   return {
@@ -66,5 +67,29 @@ export class TicketRepoPrisma implements TicketRepo {
       },
     });
     return toDomain(row);
+  }
+
+  async findForDashboard(userId: Ticket['userId']): Promise<DashboardTicket[]> {
+    const rows = (await prisma.ticket.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        client: { select: { id: true, name: true } },
+      },
+    })) as unknown as (PrismaTicket & { client: { id: string; name: string } })[];
+
+    return rows.map((row) => ({
+      id: asTicketId(row.id),
+      publicId: asTicketPublicId(row.publicId),
+      status: row.status as Ticket['status'],
+      message: row.message,
+      priceCents: cents(row.priceCents),
+      assetUrl: row.assetUrl ?? null,
+      createdAt: isoDateTime(row.createdAt.toISOString()),
+      client: {
+        id: asClientId(row.client.id),
+        name: row.client.name,
+      },
+    }));
   }
 }
