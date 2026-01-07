@@ -93,6 +93,9 @@ export class StripeAdapter implements PaymentPort {
     let event: Stripe.Event;
 
     try {
+      console.log('[STRIPE] verify: bytes', body.length);
+      console.log('[STRIPE] verify: sig prefix', signature.substring(0, 12));
+
       event = this.stripe.webhooks.constructEvent(
         body,
         signature,
@@ -106,12 +109,19 @@ export class StripeAdapter implements PaymentPort {
       );
     }
 
+    console.log('[STRIPE] verified event.type =', event.type, 'id =', event.id);
+
     const result: WebhookEventResult = {
       type: event.type,
     };
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
+      console.log('[STRIPE] session.id =', session.id);
+      console.log(
+        '[STRIPE] metadata keys =',
+        session.metadata ? Object.keys(session.metadata) : []
+      );
       result.providerSessionId = session.id;
       // Stripe metadata is a Record<string, string>, safe to pass through
       result.metadata = session.metadata || undefined;

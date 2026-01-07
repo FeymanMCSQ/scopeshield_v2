@@ -125,6 +125,7 @@ export class TicketService {
    * caller decides when payment is confirmed, then calls markPaid().
    */
   async markPaid(ticketId: TicketId): Promise<Ticket> {
+    console.log('[TICKETS] markPaid ticketId =', ticketId);
     const ticket = await this.mustGet(ticketId);
     const now = this.deps.time.now();
 

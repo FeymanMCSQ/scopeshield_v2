@@ -184,11 +184,18 @@ export class PaymentsService {
       signature
     );
 
+    console.log('[PAYMENTS] webhook type =', event.type);
+
     if (event.type !== 'checkout.session.completed') {
+      console.log('[PAYMENTS] ignored event.type =', event.type);
       return; // ACK irrelevant events
     }
 
     const ticketIdStr = event.metadata?.ticketId;
+    console.log(
+      '[PAYMENTS] metadata.ticketId =',
+      ticketIdStr ?? '(missing)'
+    );
 
     if (!ticketIdStr) {
       // Dev: surface misconfiguration loudly
@@ -206,13 +213,20 @@ export class PaymentsService {
 
     try {
       const ticketId = asTicketId(ticketIdStr);
+      console.log('[PAYMENTS] markPaid start');
       await this.deps.ticketService.markPaid(ticketId);
+      console.log('[PAYMENTS] markPaid ok');
     } catch (err) {
       /**
        * Domain invariants failing here are NOT recoverable by retries.
        * Returning normally tells Stripe “event received”.
        */
       if (err instanceof DomainError) {
+        console.warn(
+          '[PAYMENTS] domain reject (ack):',
+          err.code,
+          err.message
+        );
         console.warn(
           '[Webhook] Domain conflict while marking paid:',
           err.code,
