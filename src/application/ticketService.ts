@@ -119,6 +119,27 @@ export class TicketService {
   }
 
   /**
+   * approveTicketAsUser
+   * Workflow: load → authorize ownership → transition → persist.
+   *
+   * Trust boundary: caller supplies userId (web/device/etc). Service enforces ownership.
+   */
+  async approveTicketAsUser(
+    userId: UserId,
+    ticketId: TicketId
+  ): Promise<Ticket> {
+    invariant(userId, 'userId is required.');
+    const ticket = await this.mustGet(ticketId);
+
+    if (ticket.userId !== userId) {
+      throw new DomainError('FORBIDDEN', 'You do not own this ticket.');
+    }
+
+    const now = this.deps.time.now();
+    const next = approveDomain(ticket, now);
+    return this.deps.ticketRepo.update(next);
+  }
+  /**
    * markPaid
    * Workflow: load → transition → persist.
    *

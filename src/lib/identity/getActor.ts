@@ -15,8 +15,9 @@
 import { auth } from '@clerk/nextjs/server';
 import { cookies } from 'next/headers';
 import { HttpError } from '@/server/http/httpError';
-import { makeUserService } from '@/server/services';
+import { makeUserService, makeDeviceAuthService } from '@/server/services';
 import { asUserId } from '@/domain/shared';
+import type { NextRequest } from 'next/server';
 
 import crypto from 'crypto';
 
@@ -25,12 +26,20 @@ const GUEST_COOKIE = 'ss_uid';
 // 90 days is plenty for a “guest UX session” without pretending it’s a real identity.
 const GUEST_MAX_AGE_SECONDS = 60 * 60 * 24 * 90;
 
+export type DeviceActor = {
+  kind: 'device';
+  userId: string;
+  deviceId: string;
+};
+
 export type Actor =
   | { kind: 'user'; userId: string }
-  | { kind: 'guest'; guestId: string };
+  | { kind: 'guest'; guestId: string }
+  | DeviceActor;
 
 export type RequireUserActor = Extract<Actor, { kind: 'user' }>;
 export type RequireGuestActor = Extract<Actor, { kind: 'guest' }>;
+export type RequireDeviceActor = Extract<Actor, { kind: 'device' }>;
 
 /**
  * Canonical identity resolver.
@@ -107,4 +116,46 @@ function throwUnauthorized(message: string): never {
 
 function throwForbidden(message: string): never {
   throw new HttpError(403, 'FORBIDDEN', message);
+}
+
+function parseBearerToken(req: NextRequest): string | null {
+  const raw = req.headers.get('authorization');
+  if (!raw) return null;
+
+  const m = raw.match(/^Bearer\s+(.+)$/i);
+  return m?.[1]?.trim() || null;
+}
+
+//   *   - No Clerk. No cookies. No fallback to getActor().
+//   *   - Missing/invalid/revoked token => 401.
+//   */
+export async function requireDeviceActor(req: NextRequest): Promise<{
+  kind: 'device';
+  userId: string;
+  deviceId: string;
+}> {
+  const authz = req.headers.get('authorization');
+  if (!authz)
+    throw new HttpError(401, 'UNAUTHORIZED', 'Missing Authorization header.');
+
+  const m = authz.match(/^Bearer\s+(.+)$/i);
+  if (!m)
+    throw new HttpError(401, 'UNAUTHORIZED', 'Malformed Authorization header.');
+
+  const token = m[1].trim();
+  if (!token) throw new HttpError(401, 'UNAUTHORIZED', 'Missing bearer token.');
+
+  const authResult = await makeDeviceAuthService().authenticateDeviceToken(
+    token
+  );
+
+  if (!authResult) {
+    throw new HttpError(401, 'UNAUTHORIZED', 'Invalid or revoked device token.');
+  }
+
+  return {
+    kind: 'device',
+    userId: authResult.userId,
+    deviceId: authResult.deviceId,
+  };
 }

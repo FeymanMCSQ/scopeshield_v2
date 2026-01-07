@@ -32,3 +32,13 @@ export type Client = Prisma.ClientModel
  * 
  */
 export type Ticket = Prisma.TicketModel
+/**
+ * Model Device
+ * 
+ */
+export type Device = Prisma.DeviceModel
+/**
+ * Model PairingToken
+ * 
+ */
+export type PairingToken = Prisma.PairingTokenModel

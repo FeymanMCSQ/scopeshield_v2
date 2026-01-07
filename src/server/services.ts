@@ -12,6 +12,12 @@ import { UserService } from '@/application/userService';
 import { UserRepo } from '@/infra/repositories/userRepo';
 import { ClientService } from '@/application/clientService';
 import { ClientRepoPrisma } from '@/infra/repositories/clientRepoPrisma';
+import { PairingService } from '@/application/pairingService';
+import { PairingTokenRepoPrisma } from '@/infra/repositories/pairingTokenRepoPrisma';
+import { DeviceRepoPrisma } from '@/infra/repositories/deviceRepoPrisma';
+import { PaymentsService } from '@/application/payments/paymentsService';
+import { StripeAdapter } from '@/infra/payments/stripeAdapter';
+import { DeviceAuthService } from '@/application/deviceAuthService';
 
 export function makeTicketService() {
   return new TicketService({
@@ -33,9 +39,6 @@ export function makeClientService() {
   });
 }
 
-import { PaymentsService } from '@/application/payments/paymentsService';
-import { StripeAdapter } from '@/infra/payments/stripeAdapter';
-
 export function makePaymentsService() {
   return new PaymentsService({
     paymentPort: new StripeAdapter(
@@ -44,5 +47,18 @@ export function makePaymentsService() {
     ),
     ticketService: makeTicketService(),
     baseUrl: process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000',
+  });
+}
+
+export function makePairingService() {
+  return new PairingService({
+    pairingTokenRepo: new PairingTokenRepoPrisma(),
+    deviceRepo: new DeviceRepoPrisma(),
+  });
+}
+
+export function makeDeviceAuthService() {
+  return new DeviceAuthService({
+    deviceRepo: new DeviceRepoPrisma(),
   });
 }

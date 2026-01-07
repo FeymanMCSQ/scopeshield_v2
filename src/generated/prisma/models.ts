@@ -11,4 +11,6 @@
 export type * from './models/User'
 export type * from './models/Client'
 export type * from './models/Ticket'
+export type * from './models/Device'
+export type * from './models/PairingToken'
 export type * from './commonInputTypes'

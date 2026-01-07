@@ -53,7 +53,9 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Client: 'Client',
-  Ticket: 'Ticket'
+  Ticket: 'Ticket',
+  Device: 'Device',
+  PairingToken: 'PairingToken'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -105,6 +107,32 @@ export const TicketScalarFieldEnum = {
 } as const
 
 export type TicketScalarFieldEnum = (typeof TicketScalarFieldEnum)[keyof typeof TicketScalarFieldEnum]
+
+
+export const DeviceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  tokenHash: 'tokenHash',
+  label: 'label',
+  userAgent: 'userAgent',
+  createdAt: 'createdAt',
+  lastSeenAt: 'lastSeenAt',
+  revokedAt: 'revokedAt'
+} as const
+
+export type DeviceScalarFieldEnum = (typeof DeviceScalarFieldEnum)[keyof typeof DeviceScalarFieldEnum]
+
+
+export const PairingTokenScalarFieldEnum = {
+  id: 'id',
+  tokenHash: 'tokenHash',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
+  usedAt: 'usedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type PairingTokenScalarFieldEnum = (typeof PairingTokenScalarFieldEnum)[keyof typeof PairingTokenScalarFieldEnum]
 
 
 export const SortOrder = {
