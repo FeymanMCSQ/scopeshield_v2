@@ -26,6 +26,7 @@ import {
   markTicketPaid as markPaidDomain,
 } from '@/domain/ticket';
 import { DomainError, invariant } from '@/domain/shared';
+import { rejectTicket as rejectDomain } from '@/domain/ticket';
 
 /** Dependencies (ports) — implemented by Infrastructure later (Prisma repos). */
 
@@ -143,6 +144,14 @@ export class TicketService {
     const ticket = await this.deps.ticketRepo.findByPublicId(publicId);
     if (!ticket) throw new DomainError('NOT_FOUND', 'Ticket not found.');
     return ticket;
+  }
+
+  async rejectTicket(ticketId: TicketId): Promise<Ticket> {
+    const ticket = await this.mustGet(ticketId);
+    const now = this.deps.time.now();
+
+    const next = rejectDomain(ticket, now);
+    return this.deps.ticketRepo.update(next);
   }
 
   private async mustGet(id: TicketId): Promise<Ticket> {
