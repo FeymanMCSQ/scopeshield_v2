@@ -2,31 +2,34 @@ import { NextRequest, NextResponse } from 'next/server';
 import { makePaymentsService } from '@/server/services';
 import { PaymentError } from '@/application/payments/errors';
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    // ✅ Use raw bytes for Stripe signature verification (byte-perfect)
-    const body = Buffer.from(await request.arrayBuffer());
+    // IMPORTANT: use arrayBuffer -> Buffer for signature integrity
+    const buf = Buffer.from(await req.arrayBuffer());
+    const sig = req.headers.get('stripe-signature');
 
-    const signature = request.headers.get('stripe-signature');
-    if (!signature) {
-      return new NextResponse('Missing signature', { status: 400 });
-    }
+    console.log('[WEBHOOK] hit', new Date().toISOString());
+    console.log('[WEBHOOK] sig?', Boolean(sig), 'bytes', buf.length);
 
-    const service = makePaymentsService();
-    await service.handleWebhook(body, signature);
+    if (!sig) return new NextResponse('Missing signature', { status: 400 });
+
+    await makePaymentsService().handleWebhook(buf, sig);
 
     return new NextResponse('OK', { status: 200 });
   } catch (err) {
+    console.error('[WEBHOOK] ERROR', err);
+
     if (err instanceof PaymentError) {
       if (err.code === 'WEBHOOK_SIGNATURE_INVALID') {
         return new NextResponse(err.message, { status: 400 });
       }
-
-      console.error('Webhook PaymentError:', err);
+      if (err.code === 'CHECKOUT_SESSION_INVALID') {
+        // During dev, this should be 400 so you see it clearly.
+        return new NextResponse(err.message, { status: 400 });
+      }
       return new NextResponse(err.message, { status: 500 });
     }
 
-    console.error('Webhook Unknown Error:', err);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

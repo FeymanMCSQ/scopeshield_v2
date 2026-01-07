@@ -61,6 +61,10 @@ export class StripeAdapter implements PaymentPort {
         metadata: input.metadata,
       });
 
+      console.log('[stripe] session created', { id: session.id });
+      const acct = await this.stripe.accounts.retrieve();
+      console.log('[stripe] account', acct.id);
+
       if (!session.url || !session.id) {
         throw new PaymentError(
           'PAYMENT_PROVIDER_ERROR',
